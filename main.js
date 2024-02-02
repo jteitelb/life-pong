@@ -1,34 +1,10 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-const GLOBALS = {
-  highlightedTile: { active: true, x: 9, y: 0 },
-  nextHighlightFrame: 30,
-};
-
-const PROPS = [];
-
-const CHARS = [];
-
-function init() {}
-
 function renderBackground() {
-  if (GLOBALS.nextHighlightFrame > 0) {
-    GLOBALS.nextHighlightFrame--;
-  } else {
-    GLOBALS.nextHighlightFrame = 30;
-    GLOBALS.highlightedTile.x = Math.floor(Math.random() * 10);
-    GLOBALS.highlightedTile.y = Math.floor(Math.random() * 10);
-  }
   for (let i = 0; i < 10; i++) {
     for (let j = 0; j < 10; j++) {
-      if (
-        GLOBALS.highlightedTile.active &&
-        GLOBALS.highlightedTile.x == i &&
-        GLOBALS.highlightedTile.y == j
-      ) {
-        ctx.fillStyle = "#da4";
-      } else if ((i + j) % 2 == 0) {
+      if ((i + j) % 2 == 0) {
         ctx.fillStyle = "#000";
       } else {
         ctx.fillStyle = "#fff";
@@ -38,19 +14,59 @@ function renderBackground() {
   }
 }
 
-function renderProps() {}
+class Ball {
+  constructor(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.radius = 20;
+    this.color = color;
+    this.dx = 6;
+    this.dy = 5;
+  }
 
-function renderCharacters() {}
+  update() {
+    this.x += this.dx;
+    this.y += this.dy;
+    if (this.x + this.radius > canvas.width || this.x - this.radius < 0) {
+      this.dx = -this.dx;
+    }
+    if (this.y + this.radius > canvas.height || this.y - this.radius < 0) {
+      this.dy = -this.dy;
+    }
+  }
 
-function renderControls() {}
+  render() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+    ctx.closePath();
+  }
+}
+
+const balls = [];
+
+for (let i = 0; i < 3; i++) {
+  let red = Math.random() * 256;
+  let green = Math.random() * 256;
+  let blue = Math.random() * 256;
+  for (let i = 0; i < 8; i++) {
+    balls.push(
+      new Ball(
+        Math.random() * 330 + 20,
+        Math.random() * 330 + 20,
+        `rgb(${red}, ${green}, ${blue})`
+      )
+    );
+  }
+}
 
 function startFrames() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
   renderBackground();
-  renderProps();
-  renderCharacters();
-  renderControls();
+  balls.forEach((ball) => {
+    ball.render();
+    ball.update();
+  });
 
   window.requestAnimationFrame(startFrames);
 }
