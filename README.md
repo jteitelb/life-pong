@@ -1,4 +1,4 @@
-# Yin and Yang
+# Pong Duel
 
 who could see this and not want to re-create it?
 
