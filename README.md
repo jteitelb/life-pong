@@ -1,6 +1,8 @@
-# Pong Duel
+# Life Pong
 
-who could see this and not want to re-create it?
+what if you combined the game of life with pong?
+
+started out trying to recreate a small app from a tweet:
 
 [the post that inspired me](https://twitter.com/vnglst/status/1751278052154179770?t=aEY-nyBzjO4Sp0JI5tA7bA)
 
