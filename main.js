@@ -1,44 +1,105 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-const newColors = document.getElementById("newColors");
-const color1 = document.getElementById("color1");
-const color2 = document.getElementById("color2");
-const color3 = document.getElementById("color3");
+const runLifeButton = document.getElementById("runLife");
+const stepLifeButton = document.getElementById("stepLife");
+const resetLifeButton = document.getElementById("resetLife");
+const randomizeLifeButton = document.getElementById("randomizeLife");
 
-const balls = [];
-const colors = [];
+const SCREEN_SIZE = 400;
+canvas.width = SCREEN_SIZE;
+canvas.height = SCREEN_SIZE;
 
-function generateBalls() {
-  balls.length = 0;
-  colors.length = 0;
-  for (let i = 0; i < 3; i++) {
-    let red = parseInt(Math.random() * 256);
-    let green = parseInt(Math.random() * 256);
-    let blue = parseInt(Math.random() * 256);
-    colors.push(`rgb(${red}, ${green}, ${blue})`);
-    color1.innerHTML = colors[0];
-    color2.innerHTML = colors[1];
-    color3.innerHTML = colors[2];
-    for (let j = 0; j < 8; j++) {
-      balls.push(
-        new Ball(Math.random() * 330 + 20, Math.random() * 330 + 20, colors[i])
-      );
+const GRID_SIZE = 10;
+const CELL_SIZE = SCREEN_SIZE / GRID_SIZE;
+
+const STEP_TIME = 15; // frames per game of life step
+const BALL_SPEED = 1;
+
+const TIMERS = {
+  NEXT_STEP: STEP_TIME,
+  tick() {
+    this.NEXT_STEP--;
+  },
+};
+
+function initGrid() {
+  let grid = [];
+  for (let i = 0; i < GRID_SIZE; i++) {
+    grid[i] = [];
+    for (let j = 0; j < GRID_SIZE; j++) {
+      grid[i][j] = i >= GRID_SIZE / 2 ? 1 : 0; // half black, half white
+    }
+  }
+  return grid;
+}
+
+function randomizeGrid() {
+  for (let i = 0; i < GRID_SIZE; i++) {
+    for (let j = 0; j < GRID_SIZE; j++) {
+      grid[i][j] = Math.floor(Math.random() * 2);
     }
   }
 }
 
-newColors.addEventListener("click", generateBalls);
+/****************************
+  Game of Life Functions
+ ***************************/
+function countNeighbors(i, j) {
+  let neighbors = 0;
+
+  for (let di = -1; di <= 1; di++) {
+    for (let dj = -1; dj <= 1; dj++) {
+      // neighbor coordinates
+      const ni = i + di;
+      const nj = j + dj;
+
+      neighbors += grid[ni]?.[nj] || 0;
+    }
+  }
+  neighbors -= grid[i][j];
+
+  return neighbors;
+}
+
+function nextGeneration() {
+  let nextGen = [];
+  for (let i = 0; i < GRID_SIZE; i++) {
+    nextGen[i] = [];
+    for (let j = 0; j < GRID_SIZE; j++) {
+      let neighbors = countNeighbors(i, j);
+
+      if (grid[i][j] === 1) {
+        if (neighbors < 2 || neighbors > 3) {
+          nextGen[i][j] = 0;
+        } else {
+          nextGen[i][j] = 1;
+        }
+      } else {
+        if (neighbors === 3) {
+          nextGen[i][j] = 1;
+        } else {
+          nextGen[i][j] = 0;
+        }
+      }
+    }
+  }
+  return nextGen;
+}
+
+/********************
+ * Canvas Rendering
+ * ******************/
 
 function renderBackground() {
-  for (let i = 0; i < 10; i++) {
-    for (let j = 0; j < 10; j++) {
-      if ((i + j) % 2 == 0) {
-        ctx.fillStyle = "#000";
-      } else {
+  for (let i = 0; i < GRID_SIZE; i++) {
+    for (let j = 0; j < GRID_SIZE; j++) {
+      if (grid[i][j] === 0) {
         ctx.fillStyle = "#fff";
+      } else {
+        ctx.fillStyle = "#000";
       }
-      ctx.fillRect(40 * i, 40 * j, 40, 40);
+      ctx.fillRect(CELL_SIZE * i, CELL_SIZE * j, CELL_SIZE, CELL_SIZE);
     }
   }
 }
@@ -49,8 +110,9 @@ class Ball {
     this.y = y;
     this.radius = 20;
     this.color = color;
-    this.dx = 6;
-    this.dy = 5;
+    this.strokeColor = color === "black" ? "white" : "black";
+    this.dx = BALL_SPEED * 5;
+    this.dy = BALL_SPEED * 4;
   }
 
   update() {
@@ -69,10 +131,35 @@ class Ball {
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
     ctx.fillStyle = this.color;
     ctx.fill();
+    if (stroke) {
+      ctx.strokeStyle = this.strokeColor;
+      ctx.stroke();
+    }
     ctx.closePath();
   }
 }
 
+/***************
+ * Game Setup
+ ***************/
+
+// Initializations
+const balls = [];
+let stroke = false;
+let run_life = false;
+let grid = initGrid();
+
+const p1 = CELL_SIZE * 3;
+const p2 = SCREEN_SIZE - p1;
+
+const blackBall = new Ball(p1, p1 + CELL_SIZE, "black");
+const whiteBall = new Ball(p2, p2 - CELL_SIZE, "white");
+whiteBall.dx = -blackBall.dx;
+whiteBall.dy = -blackBall.dy;
+
+balls.push(blackBall, whiteBall);
+
+// Game Loop
 function startFrames() {
   renderBackground();
   balls.forEach((ball) => {
@@ -80,7 +167,37 @@ function startFrames() {
     ball.update();
   });
 
+  if (run_life) {
+    if (TIMERS.NEXT_STEP === 0) {
+      grid = nextGeneration();
+      TIMERS.NEXT_STEP = STEP_TIME;
+    }
+    TIMERS.tick();
+  }
+
   window.requestAnimationFrame(startFrames);
 }
 
+/*******************
+ * Event Listeners
+ *******************/
+
+runLifeButton.addEventListener("click", () => {
+  run_life = !run_life;
+  runLifeButton.innerHTML = run_life ? "Stop" : "Start";
+});
+
+stepLifeButton.addEventListener("click", () => {
+  grid = nextGeneration();
+});
+
+resetLifeButton.addEventListener("click", () => {
+  grid = initGrid();
+});
+
+randomizeLifeButton.addEventListener("click", () => {
+  randomizeGrid();
+});
+
+// Run it!
 startFrames();

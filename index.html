@@ -3,17 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pong Duel</title>
+    <title>Life Pong</title>
     <link rel="stylesheet" href="styles.css" />
     <script src="main.js" defer></script>
   </head>
   <body>
-    <h1>Pong Duel</h1>
+    <h1>Life Pong</h1>
     <canvas id="canvas" width="400" height="400"> </canvas>
-    <br />
-    <button id="newColors">new colors!</button>
-    <p id="color1">Color 1:</p>
-    <p id="color2">Color 2:</p>
-    <p id="color3">Color 3:</p>
+    <div class="control-panel">
+      <h2 class="life-header">Game of Life</h2>
+      <button id="runLife">Start</button>
+      <button id="stepLife">Step</button>
+      <button id="resetLife">Reset</button>
+      <button id="randomizeLife">Random</button>
+    </div>
   </body>
 </html>
