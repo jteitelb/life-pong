@@ -17,10 +17,10 @@ canvas.height = SCREEN_SIZE;
 
 const GRID_SIZE = 10;
 const CELL_SIZE = SCREEN_SIZE / GRID_SIZE;
-const BALL_RADIUS = CELL_SIZE / 4;
+const BALL_RADIUS = CELL_SIZE / 3;
 
-const STEP_TIME = 15; // frames per game of life step
-const BALL_SPEED = 1;
+const STEP_TIME = 30; // frames per game of life step
+const BALL_SPEED = 6;
 
 const TIMERS = {
   NEXT_STEP: STEP_TIME,
@@ -125,8 +125,8 @@ class Ball {
     this.radius = BALL_RADIUS;
     this.color = color;
     this.strokeColor = color === "black" ? "white" : "black";
-    this.dx = BALL_SPEED * 5;
-    this.dy = BALL_SPEED * 4;
+    this.dx = BALL_SPEED * (6 / 5);
+    this.dy = BALL_SPEED;
     this.colorType = color === "black" ? 1 : 0;
   }
 
@@ -194,11 +194,12 @@ let life_running = false;
 let pong_running = true;
 let grid = initGrid();
 
-const p1 = BALL_RADIUS * 3;
+const p1 = SCREEN_SIZE / 5;
 const p2 = SCREEN_SIZE - p1;
 
 const blackBall = new Ball(p1, p1 + CELL_SIZE * 2, "black");
 const whiteBall = new Ball(p2, p2 - CELL_SIZE, "white");
+
 whiteBall.dx = -blackBall.dx;
 whiteBall.dy = -blackBall.dy;
 
