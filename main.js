@@ -10,6 +10,8 @@ const randomizeLifeButton = document.getElementById("randomizeLife");
 
 const runPongButton = document.getElementById("runPong");
 const resetPongButton = document.getElementById("resetPong");
+const blackSpeedButton = document.getElementById("blackSpeed");
+const whiteSpeedButton = document.getElementById("whiteSpeed");
 
 const SCREEN_SIZE = 400;
 canvas.width = SCREEN_SIZE;
@@ -21,6 +23,8 @@ const BALL_RADIUS = CELL_SIZE / 3;
 
 const STEP_TIME = 30; // frames per game of life step
 const BALL_SPEED = 6;
+
+const SPEED_OPTIONS = [2, 6, 15];
 
 const TIMERS = {
   NEXT_STEP: STEP_TIME,
@@ -125,9 +129,24 @@ class Ball {
     this.radius = BALL_RADIUS;
     this.color = color;
     this.strokeColor = color === "black" ? "white" : "black";
+    this.currentSpeed = BALL_SPEED;
     this.dx = BALL_SPEED * (6 / 5);
     this.dy = BALL_SPEED;
     this.colorType = color === "black" ? 1 : 0;
+  }
+
+  setSpeed(speed) {
+    const ratio = speed / this.currentSpeed;
+    this.dx *= ratio;
+    this.dy *= ratio;
+    this.currentSpeed = speed;
+  }
+
+  cycleSpeed() {
+    const idx = SPEED_OPTIONS.indexOf(this.currentSpeed);
+    const nextIdx = (idx + 1) % SPEED_OPTIONS.length;
+    this.setSpeed(SPEED_OPTIONS[nextIdx]);
+    return nextIdx;
   }
 
   checkCollision() {
@@ -278,6 +297,16 @@ resetPongButton.addEventListener("click", () => {
   blackBall.y = p1 + CELL_SIZE * 2;
   whiteBall.x = p2;
   whiteBall.y = p2 - CELL_SIZE;
+});
+
+blackSpeedButton.addEventListener("click", () => {
+  const speedStr = ["Slow", "Medium", "Fast"][blackBall.cycleSpeed()];
+  blackSpeedButton.innerHTML = `Black: ${speedStr}`;
+});
+
+whiteSpeedButton.addEventListener("click", () => {
+  const speedStr = ["Slow", "Medium", "Fast"][whiteBall.cycleSpeed()];
+  whiteSpeedButton.innerHTML = `White: ${speedStr}`;
 });
 
 // Run it!
