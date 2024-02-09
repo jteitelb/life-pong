@@ -1,10 +1,15 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
+const toggleGridButton = document.getElementById("toggleGrid");
+
 const runLifeButton = document.getElementById("runLife");
 const stepLifeButton = document.getElementById("stepLife");
 const resetLifeButton = document.getElementById("resetLife");
 const randomizeLifeButton = document.getElementById("randomizeLife");
+
+const runPongButton = document.getElementById("runPong");
+const resetPongButton = document.getElementById("resetPong");
 
 const SCREEN_SIZE = 400;
 canvas.width = SCREEN_SIZE;
@@ -12,6 +17,7 @@ canvas.height = SCREEN_SIZE;
 
 const GRID_SIZE = 10;
 const CELL_SIZE = SCREEN_SIZE / GRID_SIZE;
+const BALL_RADIUS = CELL_SIZE / 4;
 
 const STEP_TIME = 15; // frames per game of life step
 const BALL_SPEED = 1;
@@ -40,6 +46,10 @@ function randomizeGrid() {
       grid[i][j] = Math.floor(Math.random() * 2);
     }
   }
+}
+
+function canvasCoordsToGrid(x, y) {
+  return [Math.floor(x / CELL_SIZE), Math.floor(y / CELL_SIZE)];
 }
 
 /****************************
@@ -100,6 +110,10 @@ function renderBackground() {
         ctx.fillStyle = "#000";
       }
       ctx.fillRect(CELL_SIZE * i, CELL_SIZE * j, CELL_SIZE, CELL_SIZE);
+      if (showGridlines) {
+        ctx.strokeStyle = "#888";
+        ctx.strokeRect(CELL_SIZE * i, CELL_SIZE * j, CELL_SIZE, CELL_SIZE);
+      }
     }
   }
 }
@@ -108,14 +122,27 @@ class Ball {
   constructor(x, y, color) {
     this.x = x;
     this.y = y;
-    this.radius = 20;
+    this.radius = BALL_RADIUS;
     this.color = color;
     this.strokeColor = color === "black" ? "white" : "black";
     this.dx = BALL_SPEED * 5;
     this.dy = BALL_SPEED * 4;
+    this.colorType = color === "black" ? 1 : 0;
+  }
+
+  checkCollision() {
+    // currently checks if ball center is in opposite color and flips x and y if so
+    // TODO: check ball boundardy and flip one coordinate for more realistic bouncing
+    const [i, j] = canvasCoordsToGrid(this.x, this.y);
+    if (grid[i]?.[j] === this.colorType) {
+      this.dx = -this.dx;
+      this.dy = -this.dy;
+      grid[i][j] = 1 - grid[i][j];
+    }
   }
 
   update() {
+    this.checkCollision();
     this.x += this.dx;
     this.y += this.dy;
     if (this.x + this.radius > canvas.width || this.x - this.radius < 0) {
@@ -144,30 +171,40 @@ class Ball {
  ***************/
 
 // Initializations
-const balls = [];
+const ball_array = [];
 let stroke = false;
-let run_life = false;
+let showGridlines = false;
+let life_running = false;
+let pong_running = true;
 let grid = initGrid();
 
-const p1 = CELL_SIZE * 3;
+const p1 = BALL_RADIUS * 3;
 const p2 = SCREEN_SIZE - p1;
 
-const blackBall = new Ball(p1, p1 + CELL_SIZE, "black");
+const blackBall = new Ball(p1, p1 + CELL_SIZE * 2, "black");
 const whiteBall = new Ball(p2, p2 - CELL_SIZE, "white");
 whiteBall.dx = -blackBall.dx;
 whiteBall.dy = -blackBall.dy;
 
-balls.push(blackBall, whiteBall);
+ball_array.push(blackBall, whiteBall);
+
+// const test = new Ball(BALL_RADIUS, BALL_RADIUS, "black");
+// test.dx = 0;
+// test.dy = 0;
+// ball_array.push(test);
 
 // Game Loop
 function startFrames() {
   renderBackground();
-  balls.forEach((ball) => {
+  ball_array.forEach((ball) => {
     ball.render();
-    ball.update();
+
+    if (pong_running) {
+      ball.update();
+    }
   });
 
-  if (run_life) {
+  if (life_running) {
     if (TIMERS.NEXT_STEP === 0) {
       grid = nextGeneration();
       TIMERS.NEXT_STEP = STEP_TIME;
@@ -178,13 +215,31 @@ function startFrames() {
   window.requestAnimationFrame(startFrames);
 }
 
+function flipCell(event) {
+  const rect = canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+  console.log(`x: ${x}, y: ${y}`);
+  console.log(canvasCoordsToGrid(x, y));
+
+  const [i, j] = canvasCoordsToGrid(x, y);
+  grid[i][j] = 1 - grid[i][j];
+}
+
 /*******************
  * Event Listeners
  *******************/
 
+canvas.addEventListener("click", flipCell);
+
+toggleGridButton.addEventListener("click", () => {
+  showGridlines = !showGridlines;
+  toggleGridButton.innerHTML = showGridlines ? "Hide Grid" : "Show Grid";
+});
+
 runLifeButton.addEventListener("click", () => {
-  run_life = !run_life;
-  runLifeButton.innerHTML = run_life ? "Stop" : "Start";
+  life_running = !life_running;
+  runLifeButton.innerHTML = life_running ? "Stop" : "Start";
 });
 
 stepLifeButton.addEventListener("click", () => {
@@ -197,6 +252,20 @@ resetLifeButton.addEventListener("click", () => {
 
 randomizeLifeButton.addEventListener("click", () => {
   randomizeGrid();
+});
+
+runPongButton.addEventListener("click", () => {
+  pong_running = !pong_running;
+  runPongButton.innerHTML = pong_running ? "Stop" : "Start";
+  console.log(`black: ${canvasCoordsToGrid(blackBall.x, blackBall.y)}`);
+  console.log(`white: ${canvasCoordsToGrid(whiteBall.x, whiteBall.y)}`);
+});
+
+resetPongButton.addEventListener("click", () => {
+  blackBall.x = p1;
+  blackBall.y = p1 + CELL_SIZE * 2;
+  whiteBall.x = p2;
+  whiteBall.y = p2 - CELL_SIZE;
 });
 
 // Run it!

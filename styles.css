@@ -27,7 +27,8 @@ canvas {
   background-color: rgb(200, 200, 200);
   border-radius: 0.5rem;
 }
-.life-header {
+.life-header,
+.pong-header {
   font-family: sans-serif;
   margin: 0.2rem;
   font-size: 1rem;
