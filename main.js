@@ -131,13 +131,29 @@ class Ball {
   }
 
   checkCollision() {
-    // currently checks if ball center is in opposite color and flips x and y if so
-    // TODO: check ball boundardy and flip one coordinate for more realistic bouncing
     const [i, j] = canvasCoordsToGrid(this.x, this.y);
-    if (grid[i]?.[j] === this.colorType) {
+
+    // check if each corner of the ball is in the opposite color
+    const left = canvasCoordsToGrid(this.x - this.radius, this.y);
+    const right = canvasCoordsToGrid(this.x + this.radius, this.y);
+    const top = canvasCoordsToGrid(this.x, this.y - this.radius);
+    const bottom = canvasCoordsToGrid(this.x, this.y + this.radius);
+
+    if (grid[left[0]]?.[left[1]] === this.colorType) {
       this.dx = -this.dx;
+      grid[left[0]][left[1]] = 1 - grid[left[0]][left[1]];
+    }
+    if (grid[right[0]]?.[right[1]] === this.colorType) {
+      this.dx = -this.dx;
+      grid[right[0]][right[1]] = 1 - grid[right[0]][right[1]];
+    }
+    if (grid[top[0]]?.[top[1]] === this.colorType) {
       this.dy = -this.dy;
-      grid[i][j] = 1 - grid[i][j];
+      grid[top[0]][top[1]] = 1 - grid[top[0]][top[1]];
+    }
+    if (grid[bottom[0]]?.[bottom[1]] === this.colorType) {
+      this.dy = -this.dy;
+      grid[bottom[0]][bottom[1]] = 1 - grid[bottom[0]][bottom[1]];
     }
   }
 
@@ -186,12 +202,8 @@ const whiteBall = new Ball(p2, p2 - CELL_SIZE, "white");
 whiteBall.dx = -blackBall.dx;
 whiteBall.dy = -blackBall.dy;
 
-ball_array.push(blackBall, whiteBall);
-
-// const test = new Ball(BALL_RADIUS, BALL_RADIUS, "black");
-// test.dx = 0;
-// test.dy = 0;
-// ball_array.push(test);
+ball_array.push(blackBall);
+ball_array.push(whiteBall);
 
 // Game Loop
 function startFrames() {
@@ -219,7 +231,6 @@ function flipCell(event) {
   const rect = canvas.getBoundingClientRect();
   const x = event.clientX - rect.left;
   const y = event.clientY - rect.top;
-  console.log(`x: ${x}, y: ${y}`);
   console.log(canvasCoordsToGrid(x, y));
 
   const [i, j] = canvasCoordsToGrid(x, y);
