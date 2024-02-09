@@ -16,6 +16,21 @@ body {
 h1 {
   color: white;
 }
+
+.github-link {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  color: white;
+  text-decoration: none;
+  font-size: 1rem;
+  background-color: rgb(100, 100, 100);
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+.github-link:hover {
+  background-color: rgb(150, 150, 150);
+}
 canvas {
   margin: 1rem;
   border-radius: 10px;
