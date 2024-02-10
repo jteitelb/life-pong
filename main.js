@@ -17,12 +17,13 @@ const SCREEN_SIZE = 400;
 canvas.width = SCREEN_SIZE;
 canvas.height = SCREEN_SIZE;
 
-const GRID_SIZE = 10;
+const GRID_SIZE = 12;
 const CELL_SIZE = SCREEN_SIZE / GRID_SIZE;
-const BALL_RADIUS = CELL_SIZE / 3;
+const BALL_RADIUS = CELL_SIZE / 2;
 
 const STEP_TIME = 30; // frames per game of life step
 const BALL_SPEED = 6;
+
 const GAME_SPEED = 1; // number of updates per frame
 
 const SPEED_OPTIONS = [2, 6, 15];
@@ -150,43 +151,49 @@ class Ball {
     return nextIdx;
   }
 
-  checkCollision() {
-    const [i, j] = canvasCoordsToGrid(this.x, this.y);
-
-    // check if each corner of the ball is in the opposite color
-    const left = canvasCoordsToGrid(this.x - this.radius, this.y);
-    const right = canvasCoordsToGrid(this.x + this.radius, this.y);
-    const top = canvasCoordsToGrid(this.x, this.y - this.radius);
-    const bottom = canvasCoordsToGrid(this.x, this.y + this.radius);
-
-    if (grid[left[0]]?.[left[1]] === this.colorType) {
+  checkBoundaryCollision() {
+    if (
+      this.x + this.radius + this.dx > canvas.width ||
+      this.x - this.radius + this.dx < 0
+    ) {
       this.dx = -this.dx;
-      grid[left[0]][left[1]] = 1 - grid[left[0]][left[1]];
     }
-    if (grid[right[0]]?.[right[1]] === this.colorType) {
-      this.dx = -this.dx;
-      grid[right[0]][right[1]] = 1 - grid[right[0]][right[1]];
-    }
-    if (grid[top[0]]?.[top[1]] === this.colorType) {
+    if (
+      this.y + this.radius + this.dy > canvas.height ||
+      this.y - this.radius + this.dy < 0
+    ) {
       this.dy = -this.dy;
-      grid[top[0]][top[1]] = 1 - grid[top[0]][top[1]];
     }
-    if (grid[bottom[0]]?.[bottom[1]] === this.colorType) {
-      this.dy = -this.dy;
-      grid[bottom[0]][bottom[1]] = 1 - grid[bottom[0]][bottom[1]];
+  }
+
+  checkCellCollision() {
+    for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 8) {
+      const x = this.x + Math.cos(angle) * this.radius;
+      const y = this.y + Math.sin(angle) * this.radius;
+      const [i, j] = canvasCoordsToGrid(x, y);
+
+      if (grid[i]?.[j] === this.colorType) {
+        const ratio = Math.abs(Math.tan(angle));
+        // if (Math.abs(ratio - 1) < 0.1) {
+        //   this.dx = -this.dx;
+        //   this.dy = -this.dy;
+        // } else
+        if (ratio > 1) {
+          this.dy = -this.dy;
+        } else {
+          this.dx = -this.dx;
+        }
+        grid[i][j] = 1 - grid[i][j];
+        break;
+      }
     }
   }
 
   update() {
-    this.checkCollision();
+    this.checkCellCollision();
+    this.checkBoundaryCollision();
     this.x += this.dx;
     this.y += this.dy;
-    if (this.x + this.radius > canvas.width || this.x - this.radius < 0) {
-      this.dx = -this.dx;
-    }
-    if (this.y + this.radius > canvas.height || this.y - this.radius < 0) {
-      this.dy = -this.dy;
-    }
   }
 
   render() {
