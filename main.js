@@ -23,6 +23,7 @@ const BALL_RADIUS = CELL_SIZE / 3;
 
 const STEP_TIME = 30; // frames per game of life step
 const BALL_SPEED = 6;
+const GAME_SPEED = 1; // number of updates per frame
 
 const SPEED_OPTIONS = [2, 6, 15];
 
@@ -225,16 +226,12 @@ whiteBall.dy = -blackBall.dy;
 ball_array.push(blackBall);
 ball_array.push(whiteBall);
 
-// Game Loop
-function startFrames() {
-  renderBackground();
-  ball_array.forEach((ball) => {
-    ball.render();
-
-    if (pong_running) {
+function update() {
+  if (pong_running) {
+    ball_array.forEach((ball) => {
       ball.update();
-    }
-  });
+    });
+  }
 
   if (life_running) {
     if (TIMERS.NEXT_STEP === 0) {
@@ -243,6 +240,18 @@ function startFrames() {
     }
     TIMERS.tick();
   }
+}
+// Game Loop
+function startFrames() {
+  renderBackground();
+
+  for (let i = 0; i < GAME_SPEED; i++) {
+    update();
+  }
+
+  ball_array.forEach((ball) => {
+    ball.render();
+  });
 
   window.requestAnimationFrame(startFrames);
 }
