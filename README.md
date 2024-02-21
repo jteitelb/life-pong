@@ -1,6 +1,10 @@
 # Life Pong
 
-what if you combined the game of life with pong?
+A combination of the game of life with a neat little application that I saw in a tweet (linked below)
+
+[<img src="life_pong_screenshot.png">](https://jteitelb.github.io/life-pong/)
+
+[try it in your browser!](https://jteitelb.github.io/life-pong/)
 
 started out trying to recreate a small app from a tweet:
 
